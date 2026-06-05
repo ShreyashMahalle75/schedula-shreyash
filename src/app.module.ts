@@ -1,7 +1,13 @@
+import { DoctorModule } from './doctor/doctor.module';
+import { PatientModule } from './patient/patient.module';
+
+import { User } from './users/user.entity';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -12,9 +18,13 @@ import { AppService } from './app.service';
       username: 'postgres',
       password: 'Postgres@123',
       database: 'schedula_db',
-      autoLoadEntities: true,
+      entities: [User],
       synchronize: true,
     }),
+    AuthModule,
+    UsersModule,
+  DoctorModule,
+  PatientModule,
   ],
   controllers: [AppController],
   providers: [AppService],
