@@ -1,16 +1,20 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { DoctorController } from './doctor.controller';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../common/guards/roles.guard';
+import { DoctorProfile } from './doctor-profile.entity';
+import { DoctorService } from './doctor.service';
+
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([DoctorProfile]),
     JwtModule.register({
       secret: 'schedula-secret-key',
     }),
   ],
   controllers: [DoctorController],
-  providers: [JwtAuthGuard, RolesGuard],
+  providers: [DoctorService],
 })
 export class DoctorModule {}
