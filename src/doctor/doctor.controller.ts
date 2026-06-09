@@ -5,6 +5,9 @@ import {
   Patch,
   Body,
   UseGuards,
+  Param,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 
 import { DoctorService } from './doctor.service';
@@ -19,6 +22,44 @@ export class DoctorController {
   constructor(
     private readonly doctorService: DoctorService,
   ) {}
+
+  // DAY 4 API - Get Doctors List
+  @Get()
+  getDoctors(
+    @Query('specialization')
+    specialization?: string,
+
+    @Query('search')
+    search?: string,
+
+    @Query('page')
+    page?: number,
+
+    @Query('limit')
+    limit?: number,
+
+    @Query('availability')
+    availability?: string,
+  ) {
+    return this.doctorService.findAll(
+      specialization,
+      search,
+      Number(page) || 1,
+      Number(limit) || 10,
+      availability,
+    );
+  }
+
+  // DAY 4 API - Get Doctor By ID
+  @Get(':id')
+  getDoctorById(
+    @Param('id', ParseIntPipe)
+    id: number,
+  ) {
+    return this.doctorService.findDoctorById(
+      id,
+    );
+  }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('DOCTOR')
@@ -42,11 +83,10 @@ export class DoctorController {
   @Roles('DOCTOR')
   @Patch('profile')
   updateProfile(
-   
-  @Body() updateDoctorDto: UpdateDoctorDto,
-) {
-  return this.doctorService.update(
-    updateDoctorDto,
-  );
-}
+    @Body() updateDoctorDto: UpdateDoctorDto,
+  ) {
+    return this.doctorService.update(
+      updateDoctorDto,
+    );
+  }
 }

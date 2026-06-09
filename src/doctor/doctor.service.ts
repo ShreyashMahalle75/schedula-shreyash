@@ -86,4 +86,88 @@ export class DoctorService {
       data: updatedProfile,
     };
   }
+
+  // DAY 4 API
+  async findAll(
+    specialization?: string,
+    search?: string,
+    page = 1,
+    limit = 10,
+    availability?: string,
+  ) {
+    const query =
+      this.doctorRepository.createQueryBuilder(
+        'doctor',
+      );
+
+    if (specialization) {
+      query.andWhere(
+        'LOWER(doctor.specialization) = LOWER(:specialization)',
+        { specialization },
+      );
+    }
+
+    if (search) {
+      query.andWhere(
+        'LOWER(doctor.fullName) LIKE LOWER(:search)',
+        {
+          search: `%${search}%`,
+        },
+      );
+    }
+
+    if (availability) {
+      query.andWhere(
+        'LOWER(doctor.availability) = LOWER(:availability)',
+        { availability },
+      );
+    }
+
+    if (page < 1 || limit < 1) {
+      return {
+        statusCode: 400,
+        message:
+          'Invalid pagination values',
+      };
+    }
+
+    query.skip((page - 1) * limit);
+    query.take(limit);
+
+    const doctors =
+      await query.getMany();
+
+    if (doctors.length === 0) {
+      return {
+        message: 'No doctors found',
+        data: [],
+      };
+    }
+
+    return {
+      page,
+      limit,
+      total: doctors.length,
+      data: doctors,
+    };
+  }
+
+  // DAY 4 API
+  async findDoctorById(id: number) {
+    const doctor =
+      await this.doctorRepository.findOne({
+        where: { id },
+      });
+
+    if (!doctor) {
+      throw new NotFoundException(
+        'Doctor not found',
+      );
+    }
+
+    return {
+      message: 'Doctor Details',
+      data: doctor,
+    };
+  }
 }
