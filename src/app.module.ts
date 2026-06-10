@@ -15,6 +15,11 @@ import { DoctorProfile } from './doctor/doctor-profile.entity';
 import { PatientProfile } from './patient/patient-profile.entity';
 console.log('DATABASE_URL =', process.env.DATABASE_URL);
 console.log('SYNC = TRUE');
+console.log('Entities loaded:', [
+  User.name,
+  DoctorProfile.name,
+  PatientProfile.name,
+]);
 @Module({
   imports: [
     ConfigModule.forRoot({
