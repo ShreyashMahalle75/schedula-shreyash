@@ -13,7 +13,8 @@ import { PatientModule } from './patient/patient.module';
 import { User } from './users/user.entity';
 import { DoctorProfile } from './doctor/doctor-profile.entity';
 import { PatientProfile } from './patient/patient-profile.entity';
-
+console.log('DATABASE_URL =', process.env.DATABASE_URL);
+console.log('SYNC = TRUE');
 @Module({
   imports: [
     ConfigModule.forRoot({
