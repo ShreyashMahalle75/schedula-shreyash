@@ -31,6 +31,7 @@ TypeOrmModule.forRoot({
     PatientProfile,
   ],
   synchronize: true,
+    logging: true,
 }),
 
 
