@@ -13,6 +13,9 @@ import { PatientModule } from './patient/patient.module';
 import { User } from './users/user.entity';
 import { DoctorProfile } from './doctor/doctor-profile.entity';
 import { PatientProfile } from './patient/patient-profile.entity';
+import { SlotsController } from './slots/slots.controller';
+import { SlotsService } from './slots/slots.service';
+import { SlotsModule } from './slots/slots.module';
 console.log('DATABASE_URL =', process.env.DATABASE_URL);
 console.log('SYNC = TRUE');
 console.log('Entities loaded:', [
@@ -45,9 +48,10 @@ TypeOrmModule.forRoot({
     UsersModule,
     DoctorModule,
       AvailabilityModule,
+      SlotsModule,
   ],
 
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, SlotsController],
+  providers: [AppService, SlotsService],
 })
 export class AppModule {}
