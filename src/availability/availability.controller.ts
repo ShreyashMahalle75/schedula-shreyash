@@ -16,10 +16,12 @@ export class AvailabilityController {
     private readonly availabilityService: AvailabilityService,
   ) {}
 
-  // Create Availability
+  // Create Recurring Availability
   @Post()
   createAvailability(@Body() body: any) {
-    return this.availabilityService.createAvailability(body);
+    return this.availabilityService.createAvailability(
+      body,
+    );
   }
 
   // Get All Availability
@@ -31,7 +33,9 @@ export class AvailabilityController {
   // Create Override Availability
   @Post('override')
   createOverride(@Body() body: any) {
-    return this.availabilityService.createOverride(body);
+    return this.availabilityService.createOverride(
+      body,
+    );
   }
 
   // Get Override By Date
@@ -39,7 +43,20 @@ export class AvailabilityController {
   getOverrideByDate(
     @Query('date') date: string,
   ) {
-    return this.availabilityService.getOverrideByDate(date);
+    return this.availabilityService.getOverrideByDate(
+      date,
+    );
+  }
+
+  // Resolve Availability
+  // Override > Recurring
+  @Get('resolve')
+  resolveAvailability(
+    @Query('date') date: string,
+  ) {
+    return this.availabilityService.resolveAvailability(
+      date,
+    );
   }
 
   // Update Availability

@@ -6,38 +6,6 @@ export class AvailabilityService {
   private overrides: any[] = [];
 
   createAvailability(body: any) {
-
-    if (body.startTime >= body.endTime) {
-      return {
-        message: 'End time must be after start time',
-      };
-    }
-
-    const exists = this.availabilities.find(
-      (item) =>
-        item.dayOfWeek === body.dayOfWeek &&
-        item.startTime === body.startTime &&
-        item.endTime === body.endTime,
-    );
-
-    if (exists) {
-      return {
-        message: 'Duplicate availability slot',
-      };
-    }
-     const overlap = this.availabilities.find(
-    (item) =>
-      item.dayOfWeek === body.dayOfWeek &&
-      body.startTime < item.endTime &&
-      body.endTime > item.startTime,
-  );
-
-  if (overlap) {
-    return {
-      message: 'Overlapping slot detected',
-    };
-  }
-
     this.availabilities.push(body);
 
     return {
@@ -90,6 +58,24 @@ export class AvailabilityService {
     return {
       message: 'Override Availability',
       data: result,
+    };
+  }
+
+  resolveAvailability(date: string) {
+    const override = this.overrides.find(
+      (item) => item.date === date,
+    );
+
+    if (override) {
+      return {
+        source: 'override',
+        data: override,
+      };
+    }
+
+    return {
+      source: 'recurring',
+      data: this.availabilities[0] || null,
     };
   }
 }
