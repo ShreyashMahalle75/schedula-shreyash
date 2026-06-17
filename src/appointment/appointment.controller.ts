@@ -1,4 +1,3 @@
-
 import {
   Controller,
   Post,
@@ -7,7 +6,6 @@ import {
   Param,
   Body,
 } from '@nestjs/common';
-
 import { AppointmentService } from './appointment.service';
 
 @Controller('appointment')
@@ -19,16 +17,13 @@ export class AppointmentController {
   // Book Appointment
   @Post()
   bookAppointment(@Body() body: any) {
-    return this.appointmentService.bookAppointment(
-      body,
-    );
+    return this.appointmentService.bookAppointment(body);
   }
 
-  // Patient Appointments
-  @Get('my')
-  getPatientAppointments() {
-    return this.appointmentService.getPatientAppointments();
-  }
+@Get('my')
+getMyAppointments() {
+return this.appointmentService.getMyAppointments();
+}
 
   // Doctor Appointments
   @Get('doctor')
@@ -43,6 +38,18 @@ export class AppointmentController {
   ) {
     return this.appointmentService.cancelAppointment(
       Number(id),
+    );
+  }
+
+  // Reschedule Appointment
+  @Patch(':id/reschedule')
+  rescheduleAppointment(
+    @Param('id') id: string,
+    @Body() body: any,
+  ) {
+    return this.appointmentService.rescheduleAppointment(
+      Number(id),
+      body,
     );
   }
 }
