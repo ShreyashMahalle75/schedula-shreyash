@@ -17,6 +17,7 @@ import { SlotsController } from './slots/slots.controller';
 import { SlotsService } from './slots/slots.service';
 import { SlotsModule } from './slots/slots.module';
 import { AppointmentModule } from './appointment/appointment.module';
+import { SchedulingModule } from './scheduling/scheduling.module';
 console.log('DATABASE_URL =', process.env.DATABASE_URL);
 console.log('SYNC = TRUE');
 console.log('Entities loaded:', [
@@ -51,6 +52,7 @@ TypeOrmModule.forRoot({
       AvailabilityModule,
       SlotsModule,
       AppointmentModule,
+      SchedulingModule,
   ],
 
   controllers: [AppController, SlotsController],
