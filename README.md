@@ -43,3 +43,21 @@ https://github.com/ShreyashMahalle75/schedula-shreyash
 ## Live Server URL
 
 Not Deployed Yet
+## Notification System Foundation
+
+### Features Implemented
+
+- View patient notifications
+- Mark a notification as read
+- Mark all notifications as read
+- Get unread notification count
+- Notification type management using enums
+- Authorization checks for patient notifications
+- Latest notifications displayed first
+
+### Notification APIs
+
+#### Get All Notifications
+
+```http
+GET /notifications?patientId=1
