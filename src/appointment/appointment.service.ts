@@ -1,8 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationType } from '../notification/enums/notification-type.enum';
 
 @Injectable()
 export class AppointmentService {
   private appointments: any[] = [];
+
+  constructor(
+    private readonly notificationService: NotificationService,
+  ) {}
 
   bookAppointment(body: any) {
     const selectedDate = new Date(body.date);
@@ -10,24 +16,28 @@ export class AppointmentService {
 
     today.setHours(0, 0, 0, 0);
 
+    // Prevent past booking
     if (selectedDate < today) {
       return {
         message: 'Past appointment booking not allowed',
       };
     }
 
+    // Invalid doctor
     if (body.doctorId <= 0) {
       return {
         message: 'Doctor not found',
       };
     }
 
+    // Invalid slot
     if (!body.startTime || !body.endTime) {
       return {
         message: 'Invalid slot',
       };
     }
 
+    // Duplicate appointment check
     const existingAppointment = this.appointments.find(
       (appointment) =>
         appointment.doctorId === body.doctorId &&
@@ -42,6 +52,7 @@ export class AppointmentService {
       };
     }
 
+    // Create appointment
     const appointment = {
       id: this.appointments.length + 1,
       ...body,
@@ -49,6 +60,14 @@ export class AppointmentService {
     };
 
     this.appointments.push(appointment);
+
+    // Automatic Notification Creation
+    this.notificationService.createNotification({
+      patientId: body.patientId,
+      title: 'Appointment Booked',
+      message: `Your appointment with Doctor ${body.doctorId} has been booked successfully for ${body.date} at ${body.startTime}.`,
+      type: NotificationType.APPOINTMENT_BOOKED,
+    });
 
     return {
       message: 'Appointment booked successfully',
@@ -101,6 +120,14 @@ export class AppointmentService {
 
     appointment.status = 'CANCELLED';
 
+    // Automatic Notification Creation
+    this.notificationService.createNotification({
+      patientId: appointment.patientId,
+      title: 'Appointment Cancelled',
+      message: `Your appointment scheduled on ${appointment.date} at ${appointment.startTime} has been cancelled.`,
+      type: NotificationType.APPOINTMENT_CANCELLED,
+    });
+
     return {
       message: 'Appointment cancelled successfully',
       data: appointment,
@@ -150,12 +177,22 @@ export class AppointmentService {
 
     if (existingAppointment) {
       return {
-        message: 'Requested slot unavailable. Suggest next available slot',
+        message:
+          'Requested slot unavailable. Suggest next available slot',
       };
     }
 
+    // Update appointment
     appointment.date = body.newDate;
     appointment.startTime = body.newStartTime;
+
+    // Automatic Notification Creation
+    this.notificationService.createNotification({
+      patientId: appointment.patientId,
+      title: 'Appointment Rescheduled',
+      message: `Your appointment has been rescheduled to ${body.newDate} at ${body.newStartTime}.`,
+      type: NotificationType.APPOINTMENT_RESCHEDULED,
+    });
 
     return {
       message: 'Appointment rescheduled successfully',
