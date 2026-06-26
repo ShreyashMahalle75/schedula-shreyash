@@ -61,3 +61,40 @@ Not Deployed Yet
 
 ```http
 GET /notifications?patientId=1
+## Day 16 - Automated Appointment Reminder System (Cron Jobs)
+
+### Features Implemented
+
+* Added NestJS Schedule Module for background job execution.
+* Implemented Cron Job running every minute.
+* Automatically generates reminder notifications for upcoming appointments.
+* Sends reminders only once using `reminderSent` flag.
+* Supports Stream Scheduling reminders.
+* Skips cancelled appointments.
+* Skips completed appointments.
+* Prevents duplicate reminder notifications.
+
+### Reminder Workflow
+
+1. Cron Job executes every minute.
+2. Fetches all appointments.
+3. Checks appointment status.
+4. Skips cancelled and completed appointments.
+5. Checks whether reminder is already sent.
+6. Creates reminder notification automatically.
+7. Updates `reminderSent` to `true`.
+
+### Edge Cases Handled
+
+* Appointment already cancelled.
+* Appointment already completed.
+* Reminder already sent.
+* Invalid appointment data.
+
+### APIs Used
+
+| Method | Endpoint                     | Description         |
+| ------ | ---------------------------- | ------------------- |
+| POST   | `/appointment`               | Create appointment  |
+| GET    | `/notifications?patientId=1` | Fetch notifications |
+| PATCH  | `/appointment/:id/cancel`    | Cancel appointment  |

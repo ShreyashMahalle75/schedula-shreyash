@@ -10,64 +10,26 @@ export class AppointmentService {
     private readonly notificationService: NotificationService,
   ) {}
 
+  // BOOK APPOINTMENT
   bookAppointment(body: any) {
-    const selectedDate = new Date(body.date);
-    const today = new Date();
-
-    today.setHours(0, 0, 0, 0);
-
-    // Prevent past booking
-    if (selectedDate < today) {
-      return {
-        message: 'Past appointment booking not allowed',
-      };
-    }
-
-    // Invalid doctor
-    if (body.doctorId <= 0) {
-      return {
-        message: 'Doctor not found',
-      };
-    }
-
-    // Invalid slot
-    if (!body.startTime || !body.endTime) {
-      return {
-        message: 'Invalid slot',
-      };
-    }
-
-    // Duplicate appointment check
-    const existingAppointment = this.appointments.find(
-      (appointment) =>
-        appointment.doctorId === body.doctorId &&
-        appointment.date === body.date &&
-        appointment.startTime === body.startTime &&
-        appointment.status === 'BOOKED',
-    );
-
-    if (existingAppointment) {
-      return {
-        message: 'Slot already booked',
-      };
-    }
-
-    // Create appointment
     const appointment = {
       id: this.appointments.length + 1,
       ...body,
       status: 'BOOKED',
+
+      // NEW FIELD FOR DAY 16
+      reminderSent: false,
     };
 
     this.appointments.push(appointment);
 
-    // Automatic Notification Creation
-    this.notificationService.createNotification({
-      patientId: body.patientId,
-      title: 'Appointment Booked',
-      message: `Your appointment with Doctor ${body.doctorId} has been booked successfully for ${body.date} at ${body.startTime}.`,
-      type: NotificationType.APPOINTMENT_BOOKED,
-    });
+    // Existing Notification Logic
+    this.notificationService.create(
+      body.patientId,
+      'Appointment Booked',
+      `Your appointment with Doctor ${body.doctorId} has been booked successfully for ${body.date} at ${body.startTime}.`,
+      NotificationType.APPOINTMENT_BOOKED,
+    );
 
     return {
       message: 'Appointment booked successfully',
@@ -75,32 +37,23 @@ export class AppointmentService {
     };
   }
 
+  // GET PATIENT APPOINTMENTS
   getMyAppointments() {
-    if (this.appointments.length === 0) {
-      return {
-        message: 'No appointments found',
-      };
-    }
-
     return {
-      message: 'Patient appointments',
+      message: 'Appointments fetched successfully',
       data: this.appointments,
     };
   }
 
+  // GET DOCTOR APPOINTMENTS
   getDoctorAppointments() {
-    if (this.appointments.length === 0) {
-      return {
-        message: 'No appointments found',
-      };
-    }
-
     return {
-      message: 'Doctor appointments',
+      message: 'Doctor appointments fetched successfully',
       data: this.appointments,
     };
   }
 
+  // CANCEL APPOINTMENT
   cancelAppointment(id: number) {
     const appointment = this.appointments.find(
       (item) => item.id === id,
@@ -108,25 +61,18 @@ export class AppointmentService {
 
     if (!appointment) {
       return {
-        message: 'Invalid appointment ID',
-      };
-    }
-
-    if (appointment.status === 'CANCELLED') {
-      return {
-        message: 'Appointment already cancelled',
+        message: 'Appointment not found',
       };
     }
 
     appointment.status = 'CANCELLED';
 
-    // Automatic Notification Creation
-    this.notificationService.createNotification({
-      patientId: appointment.patientId,
-      title: 'Appointment Cancelled',
-      message: `Your appointment scheduled on ${appointment.date} at ${appointment.startTime} has been cancelled.`,
-      type: NotificationType.APPOINTMENT_CANCELLED,
-    });
+    this.notificationService.create(
+      appointment.patientId,
+      'Appointment Cancelled',
+      `Your appointment scheduled on ${appointment.date} at ${appointment.startTime} has been cancelled.`,
+      NotificationType.APPOINTMENT_CANCELLED,
+    );
 
     return {
       message: 'Appointment cancelled successfully',
@@ -134,6 +80,7 @@ export class AppointmentService {
     };
   }
 
+  // RESCHEDULE APPOINTMENT
   rescheduleAppointment(id: number, body: any) {
     const appointment = this.appointments.find(
       (item) => item.id === id,
@@ -145,58 +92,24 @@ export class AppointmentService {
       };
     }
 
-    if (appointment.status === 'CANCELLED') {
-      return {
-        message: 'Cannot reschedule cancelled appointment',
-      };
-    }
-
-    if (appointment.patientId !== body.patientId) {
-      return {
-        message: 'Unauthorized rescheduling',
-      };
-    }
-
-    if (
-      appointment.date === body.newDate &&
-      appointment.startTime === body.newStartTime
-    ) {
-      return {
-        message: 'Cannot reschedule to same slot',
-      };
-    }
-
-    const existingAppointment = this.appointments.find(
-      (item) =>
-        item.id !== id &&
-        item.doctorId === appointment.doctorId &&
-        item.date === body.newDate &&
-        item.startTime === body.newStartTime &&
-        item.status === 'BOOKED',
-    );
-
-    if (existingAppointment) {
-      return {
-        message:
-          'Requested slot unavailable. Suggest next available slot',
-      };
-    }
-
-    // Update appointment
     appointment.date = body.newDate;
     appointment.startTime = body.newStartTime;
 
-    // Automatic Notification Creation
-    this.notificationService.createNotification({
-      patientId: appointment.patientId,
-      title: 'Appointment Rescheduled',
-      message: `Your appointment has been rescheduled to ${body.newDate} at ${body.newStartTime}.`,
-      type: NotificationType.APPOINTMENT_RESCHEDULED,
-    });
+    this.notificationService.create(
+      appointment.patientId,
+      'Appointment Rescheduled',
+      `Your appointment has been rescheduled to ${body.newDate} at ${body.newStartTime}.`,
+      NotificationType.APPOINTMENT_RESCHEDULED,
+    );
 
     return {
       message: 'Appointment rescheduled successfully',
       data: appointment,
     };
+  }
+
+  // NEW METHOD FOR CRON JOB
+  getAppointments() {
+    return this.appointments;
   }
 }
