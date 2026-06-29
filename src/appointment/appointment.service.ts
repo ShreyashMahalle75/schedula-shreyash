@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+} from '@nestjs/common';
+
 import { NotificationService } from '../notification/notification.service';
 import { NotificationType } from '../notification/enums/notification-type.enum';
 
@@ -12,18 +16,73 @@ export class AppointmentService {
 
   // BOOK APPOINTMENT
   bookAppointment(body: any) {
+    // =========================
+    // DATE VALIDATION
+    // =========================
+
+    const bookingDate = new Date(body.date);
+
+    // Invalid Date Format
+    if (isNaN(bookingDate.getTime())) {
+      throw new BadRequestException(
+        'Invalid date format. Please provide a valid date.',
+      );
+    }
+
+    // Today's Date
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+    bookingDate.setHours(0, 0, 0, 0);
+
+    // Past Date Validation
+    if (bookingDate < today) {
+      throw new BadRequestException(
+        'Booking for past dates is not allowed.',
+      );
+    }
+
+    // Future Date Validation
+    if (bookingDate > today) {
+      throw new BadRequestException(
+        'Booking is allowed only for today.',
+      );
+    }
+
+    // Doctor Validation
+    if (!body.doctorId) {
+      throw new BadRequestException(
+        'Invalid doctor selected.',
+      );
+    }
+
+    // Slot Availability Validation
+    const existingAppointment =
+      this.appointments.find(
+        (appointment) =>
+          appointment.doctorId === body.doctorId &&
+          appointment.date === body.date &&
+          appointment.startTime === body.startTime &&
+          appointment.status !== 'CANCELLED',
+      );
+
+    if (existingAppointment) {
+      throw new BadRequestException(
+        'Slot already booked.',
+      );
+    }
+
+    // Create Appointment
     const appointment = {
       id: this.appointments.length + 1,
       ...body,
       status: 'BOOKED',
-
-      // NEW FIELD FOR DAY 16
       reminderSent: false,
     };
 
     this.appointments.push(appointment);
 
-    // Existing Notification Logic
+    // Notification
     this.notificationService.create(
       body.patientId,
       'Appointment Booked',
@@ -37,7 +96,7 @@ export class AppointmentService {
     };
   }
 
-  // GET PATIENT APPOINTMENTS
+  // GET ALL APPOINTMENTS
   getMyAppointments() {
     return {
       message: 'Appointments fetched successfully',
@@ -60,9 +119,9 @@ export class AppointmentService {
     );
 
     if (!appointment) {
-      return {
-        message: 'Appointment not found',
-      };
+      throw new BadRequestException(
+        'Appointment not found',
+      );
     }
 
     appointment.status = 'CANCELLED';
@@ -87,9 +146,9 @@ export class AppointmentService {
     );
 
     if (!appointment) {
-      return {
-        message: 'Appointment not found',
-      };
+      throw new BadRequestException(
+        'Appointment not found',
+      );
     }
 
     appointment.date = body.newDate;
@@ -108,7 +167,7 @@ export class AppointmentService {
     };
   }
 
-  // NEW METHOD FOR CRON JOB
+  // USED BY CRON JOB
   getAppointments() {
     return this.appointments;
   }
