@@ -98,3 +98,28 @@ GET /notifications?patientId=1
 | POST   | `/appointment`               | Create appointment  |
 | GET    | `/notifications?patientId=1` | Fetch notifications |
 | PATCH  | `/appointment/:id/cancel`    | Cancel appointment  |
+## Day 17 - Appointment Booking Window (Iteration 1)
+
+### Features Implemented
+- Booking allowed only for today's date.
+- Past date booking restricted.
+- Future date booking restricted.
+- Invalid date format validation added.
+- Slot availability validation added.
+- Meaningful error responses implemented.
+
+### Business Rules
+✅ Today → Booking Allowed
+
+❌ Past Date → Not Allowed
+
+❌ Tomorrow → Not Allowed
+
+❌ Future Date → Not Allowed
+
+### Edge Cases Handled
+- Past date booking
+- Future date booking
+- Invalid date format
+- Invalid doctor
+- Slot already booked
