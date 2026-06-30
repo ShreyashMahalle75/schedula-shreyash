@@ -10,15 +10,66 @@ import { NotificationType } from '../notification/enums/notification-type.enum';
 export class AppointmentService {
   private appointments: any[] = [];
 
+  // Configurable Doctor Consultation Schedule
+  private doctorSchedules = [
+    {
+      doctorId: 1,
+      consultationStart: '09:00',
+      consultationEnd: '12:00',
+    },
+    {
+      doctorId: 2,
+      consultationStart: '14:00',
+      consultationEnd: '18:00',
+    },
+  ];
+
   constructor(
     private readonly notificationService: NotificationService,
   ) {}
 
+  // Reusable Booking Window Calculator
+  private calculateBookingWindow(
+    consultationStart: string,
+    consultationEnd: string,
+  ) {
+    const [startHour, startMinute] =
+      consultationStart.split(':').map(Number);
+
+    const [endHour, endMinute] =
+      consultationEnd.split(':').map(Number);
+
+    // Booking opens 2 hours before consultation starts
+    const bookingOpen = new Date();
+
+    bookingOpen.setHours(
+      startHour - 2,
+      startMinute,
+      0,
+      0,
+    );
+
+    // Booking closes 1 hour before consultation ends
+    const bookingClose = new Date();
+
+    bookingClose.setHours(
+      endHour - 1,
+      endMinute,
+      0,
+      0,
+    );
+
+    return {
+      bookingOpen,
+      bookingClose,
+    };
+  }
+
   // BOOK APPOINTMENT
   bookAppointment(body: any) {
-    // =========================
-    // DATE VALIDATION
-    // =========================
+    // ======================
+    // DAY 17 VALIDATIONS
+    // ======================
 
     const bookingDate = new Date(body.date);
 
@@ -29,20 +80,20 @@ export class AppointmentService {
       );
     }
 
-    // Today's Date
+    // Today Only Validation
     const today = new Date();
 
     today.setHours(0, 0, 0, 0);
     bookingDate.setHours(0, 0, 0, 0);
 
-    // Past Date Validation
+    // Past Date
     if (bookingDate < today) {
       throw new BadRequestException(
         'Booking for past dates is not allowed.',
       );
     }
 
-    // Future Date Validation
+    // Future Date
     if (bookingDate > today) {
       throw new BadRequestException(
         'Booking is allowed only for today.',
@@ -56,7 +107,71 @@ export class AppointmentService {
       );
     }
 
-    // Slot Availability Validation
+    // ======================
+    // DAY 18 VALIDATIONS
+    // ======================
+
+    // Find Doctor Schedule
+    const doctorSchedule =
+      this.doctorSchedules.find(
+        (doctor) =>
+          doctor.doctorId === body.doctorId,
+      );
+
+    // Doctor unavailable
+    if (!doctorSchedule) {
+      throw new BadRequestException(
+        'Doctor is unavailable today.',
+      );
+    }
+
+    // Invalid consultation timings
+    if (
+      !doctorSchedule.consultationStart ||
+      !doctorSchedule.consultationEnd
+    ) {
+      throw new BadRequestException(
+        'Invalid consultation timings.',
+      );
+    }
+
+    // Calculate Booking Window
+    const {
+      bookingOpen,
+      bookingClose,
+    } = this.calculateBookingWindow(
+      doctorSchedule.consultationStart,
+      doctorSchedule.consultationEnd,
+    );
+
+    // Current Time (IST)
+    const currentTime = new Date(
+      new Date().toLocaleString(
+        'en-US',
+        {
+          timeZone: 'Asia/Kolkata',
+        },
+      ),
+    );
+
+    // Before Opening Time
+    if (currentTime < bookingOpen) {
+      throw new BadRequestException(
+        `Booking has not opened yet. Booking opens at ${bookingOpen.toLocaleTimeString()}.`,
+      );
+    }
+
+    // After Closing Time
+    if (currentTime > bookingClose) {
+      throw new BadRequestException(
+        `Booking window has closed. Booking closed at ${bookingClose.toLocaleTimeString()}.`,
+      );
+    }
+
+    // ======================
+    // SLOT VALIDATION
+    // ======================
+
     const existingAppointment =
       this.appointments.find(
         (appointment) =>
@@ -72,7 +187,10 @@ export class AppointmentService {
       );
     }
 
-    // Create Appointment
+    // ======================
+    // CREATE APPOINTMENT
+    // ======================
+
     const appointment = {
       id: this.appointments.length + 1,
       ...body,
@@ -82,7 +200,7 @@ export class AppointmentService {
 
     this.appointments.push(appointment);
 
-    // Notification
+    // Create Notification
     this.notificationService.create(
       body.patientId,
       'Appointment Booked',
@@ -96,7 +214,7 @@ export class AppointmentService {
     };
   }
 
-  // GET ALL APPOINTMENTS
+  // GET PATIENT APPOINTMENTS
   getMyAppointments() {
     return {
       message: 'Appointments fetched successfully',
@@ -114,9 +232,10 @@ export class AppointmentService {
 
   // CANCEL APPOINTMENT
   cancelAppointment(id: number) {
-    const appointment = this.appointments.find(
-      (item) => item.id === id,
-    );
+    const appointment =
+      this.appointments.find(
+        (item) => item.id === id,
+      );
 
     if (!appointment) {
       throw new BadRequestException(
@@ -140,10 +259,14 @@ export class AppointmentService {
   }
 
   // RESCHEDULE APPOINTMENT
-  rescheduleAppointment(id: number, body: any) {
-    const appointment = this.appointments.find(
-      (item) => item.id === id,
-    );
+  rescheduleAppointment(
+    id: number,
+    body: any,
+  ) {
+    const appointment =
+      this.appointments.find(
+        (item) => item.id === id,
+      );
 
     if (!appointment) {
       throw new BadRequestException(
@@ -152,7 +275,8 @@ export class AppointmentService {
     }
 
     appointment.date = body.newDate;
-    appointment.startTime = body.newStartTime;
+    appointment.startTime =
+      body.newStartTime;
 
     this.notificationService.create(
       appointment.patientId,
@@ -162,12 +286,13 @@ export class AppointmentService {
     );
 
     return {
-      message: 'Appointment rescheduled successfully',
+      message:
+        'Appointment rescheduled successfully',
       data: appointment,
     };
   }
 
-  // USED BY CRON JOB
+  // Used by Reminder Cron Job
   getAppointments() {
     return this.appointments;
   }
