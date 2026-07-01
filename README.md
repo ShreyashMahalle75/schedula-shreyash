@@ -123,3 +123,83 @@ GET /notifications?patientId=1
 - Invalid date format
 - Invalid doctor
 - Slot already booked
+
+
+# Day 20 – Future Appointment Booking Configuration
+
+## Overview
+
+Implemented configurable future appointment booking for doctors.
+
+### Features
+
+- Added `allowFutureBooking` configuration.
+- Added optional `maxFutureBookingDays`.
+- Default future booking limit is 7 days when not configured.
+- Existing booking window validation is retained.
+- Existing slot validation is retained.
+- Existing notification flow is retained.
+
+## Business Rules
+
+### Doctor Configuration
+
+Doctor can configure:
+
+- allowFutureBooking
+- maxFutureBookingDays
+
+### Scenario 1
+
+allowFutureBooking = false
+
+✅ Today
+
+❌ Tomorrow
+
+❌ Future Dates
+
+### Scenario 2
+
+allowFutureBooking = true
+
+maxFutureBookingDays = 5
+
+✅ Today
+
+✅ Next 5 Days
+
+❌ Beyond 5 Days
+
+### Scenario 3
+
+allowFutureBooking = true
+
+maxFutureBookingDays = null
+
+System automatically uses
+
+7 Days
+
+## Validations
+
+- Past Date Validation
+- Invalid Date Format
+- Doctor Not Found
+- Booking Window Validation
+- Slot Already Booked
+- Future Booking Validation
+- Default 7 Day Validation
+
+## Tested APIs
+
+- Today Booking
+- Slot Already Booked
+- Future Booking Disabled
+- Future Booking Enabled
+- Booking Beyond 5 Days
+- Default 7 Day Booking
+- Beyond Default 7 Days
+- Invalid Doctor
+- Invalid Date Format
+- Past Date Booking

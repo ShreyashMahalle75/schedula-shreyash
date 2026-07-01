@@ -9,20 +9,37 @@ import { NotificationType } from '../notification/enums/notification-type.enum';
 @Injectable()
 export class AppointmentService {
   private appointments: any[] = [];
-
-  // Configurable Doctor Consultation Schedule
   private doctorSchedules = [
-    {
-      doctorId: 1,
-      consultationStart: '09:00',
-      consultationEnd: '12:00',
-    },
-    {
-      doctorId: 2,
-      consultationStart: '14:00',
-      consultationEnd: '18:00',
-    },
-  ];
+  {
+    doctorId: 1,
+    consultationStart: '13:00',
+consultationEnd: '18:00',
+    // Day 20 Configuration
+    allowFutureBooking: false,
+    maxFutureBookingDays: null,
+  },
+  {
+    doctorId: 2,
+    consultationStart: '14:00',
+    consultationEnd: '18:00',
+
+    // Day 20 Configuration
+    allowFutureBooking: true,
+    maxFutureBookingDays: 5,
+  },
+  {
+    doctorId: 3,
+    consultationStart: '08:00',
+    consultationEnd: '13:00',
+
+    // Default 7 Days
+    allowFutureBooking: true,
+    maxFutureBookingDays: null,
+  },
+];
+
+  
+  
 
   constructor(
     private readonly notificationService: NotificationService,
@@ -86,44 +103,85 @@ export class AppointmentService {
     today.setHours(0, 0, 0, 0);
     bookingDate.setHours(0, 0, 0, 0);
 
-    // Past Date
-    if (bookingDate < today) {
-      throw new BadRequestException(
-        'Booking for past dates is not allowed.',
-      );
-    }
+   // ======================
+// DAY 20 VALIDATIONS
+// ======================
 
-    // Future Date
-    if (bookingDate > today) {
-      throw new BadRequestException(
-        'Booking is allowed only for today.',
-      );
-    }
+// Past Date Validation
+if (bookingDate < today) {
+  throw new BadRequestException(
+    'Booking for past dates is not allowed.',
+  );
+}
 
-    // Doctor Validation
-    if (!body.doctorId) {
-      throw new BadRequestException(
-        'Invalid doctor selected.',
-      );
-    }
+// Doctor Validation
+if (!body.doctorId) {
+  throw new BadRequestException(
+    'Invalid doctor selected.',
+  );
+}
 
-    // ======================
-    // DAY 18 VALIDATIONS
-    // ======================
+// Find Doctor Schedule
+const doctorSchedule =
+  this.doctorSchedules.find(
+    (doctor) =>
+      doctor.doctorId === body.doctorId,
+  );
 
-    // Find Doctor Schedule
-    const doctorSchedule =
-      this.doctorSchedules.find(
-        (doctor) =>
-          doctor.doctorId === body.doctorId,
-      );
+// Doctor Not Found
+if (!doctorSchedule) {
+  throw new BadRequestException(
+    'Doctor not found.',
+  );
+}
 
-    // Doctor unavailable
-    if (!doctorSchedule) {
-      throw new BadRequestException(
-        'Doctor is unavailable today.',
-      );
-    }
+// Invalid Configuration
+if (
+  doctorSchedule.maxFutureBookingDays !== null &&
+  doctorSchedule.maxFutureBookingDays < 0
+) {
+  throw new BadRequestException(
+    'Invalid doctor availability configuration.',
+  );
+}
+
+// Future Booking Disabled
+if (!doctorSchedule.allowFutureBooking) {
+  if (bookingDate.getTime() !== today.getTime()) {
+    throw new BadRequestException(
+      'This doctor accepts only today appointments.',
+    );
+  }
+}
+
+// Future Booking Enabled
+if (doctorSchedule.allowFutureBooking) {
+  const maxFutureDays =
+    doctorSchedule.maxFutureBookingDays ?? 7;
+
+  const maxAllowedDate = new Date(today);
+
+  maxAllowedDate.setDate(
+    today.getDate() + maxFutureDays,
+  );
+
+  if (bookingDate > maxAllowedDate) {
+    throw new BadRequestException(
+      `Booking allowed only within ${maxFutureDays} future days.`,
+    );
+  }
+}
+   
+
+   // Invalid consultation timings
+if (
+  !doctorSchedule.consultationStart ||
+  !doctorSchedule.consultationEnd
+) {
+  throw new BadRequestException(
+    'Invalid consultation timings.',
+  );
+}
 
     // Invalid consultation timings
     if (
