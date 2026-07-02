@@ -203,3 +203,108 @@ System automatically uses
 - Invalid Doctor
 - Invalid Date Format
 - Past Date Booking
+
+
+# Day 21 - Doctor Leave Management
+
+## Overview
+
+Implemented Doctor Leave Management feature to handle real-world scenarios where doctors become unavailable due to leave. Patients are prevented from booking appointments on leave dates while preserving all previous appointment booking validations.
+
+---
+
+## Features
+
+- Create Doctor Leave
+- Update Doctor Leave
+- Delete Doctor Leave
+- Get All Doctor Leaves
+- Prevent duplicate leave entries
+- Prevent booking on leave dates
+- Existing appointment booking rules remain unchanged
+
+---
+
+## APIs
+
+### 1. Create Doctor Leave
+
+POST /doctor-leave
+
+Request
+
+```json
+{
+  "doctorId": 2,
+  "leaveDate": "2026-07-05",
+  "reason": "Conference"
+}
+```
+
+---
+
+### 2. Get Doctor Leaves
+
+GET /doctor-leave
+
+---
+
+### 3. Update Doctor Leave
+
+PATCH /doctor-leave/:id
+
+Request
+
+```json
+{
+  "reason": "Medical Emergency"
+}
+```
+
+---
+
+### 4. Delete Doctor Leave
+
+DELETE /doctor-leave/:id
+
+---
+
+## Booking Validation
+
+While booking an appointment:
+
+- Check whether the doctor is on leave.
+- If doctor is unavailable, booking is rejected.
+
+Example Response
+
+```json
+{
+  "message": "Doctor is unavailable on this date. Please select another available date."
+}
+```
+
+---
+
+## Validations
+
+- Duplicate leave not allowed
+- Past leave date validation
+- Existing appointments validation
+- Invalid leave date validation
+- Booking blocked on leave date
+- Previous booking rules preserved
+
+---
+
+## Testing
+
+Verified using Postman
+
+- Create Leave
+- Duplicate Leave
+- Update Leave
+- Delete Leave
+- Get Leaves
+- Appointment Blocked on Leave Date
+- Appointment Booking on Available Date

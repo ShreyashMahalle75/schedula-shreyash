@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule'; // NEW
-
+import { DoctorLeaveModule } from './doctor-leave/doctor-leave.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -57,6 +57,7 @@ import { PatientProfile } from './patient/patient-profile.entity';
     SchedulingModule,
     DoctorAppointmentsModule,
     NextAppointmentModule,
+    DoctorLeaveModule,
 
     // NEW MODULES
     NotificationModule,
@@ -66,4 +67,4 @@ import { PatientProfile } from './patient/patient-profile.entity';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule {}   
