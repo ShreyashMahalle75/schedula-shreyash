@@ -5,6 +5,7 @@ import {
 
 import { NotificationService } from '../notification/notification.service';
 import { NotificationType } from '../notification/enums/notification-type.enum';
+import { DoctorLeaveService } from '../doctor-leave/doctor-leave.service';
 
 @Injectable()
 export class AppointmentService {
@@ -42,8 +43,9 @@ consultationEnd: '18:00',
   
 
   constructor(
-    private readonly notificationService: NotificationService,
-  ) {}
+  private readonly notificationService: NotificationService,
+  private readonly doctorLeaveService: DoctorLeaveService,
+) {}
 
   // Reusable Booking Window Calculator
   private calculateBookingWindow(
@@ -102,6 +104,22 @@ consultationEnd: '18:00',
 
     today.setHours(0, 0, 0, 0);
     bookingDate.setHours(0, 0, 0, 0);
+    // ======================
+// DAY 21 VALIDATION
+// DOCTOR LEAVE CHECK
+// ======================
+
+const doctorOnLeave =
+  this.doctorLeaveService.isDoctorOnLeave(
+    body.doctorId,
+    body.date,
+  );
+
+if (doctorOnLeave) {
+  throw new BadRequestException(
+    'Doctor is unavailable on this date. Please select another available date.',
+  );
+}
 
    // ======================
 // DAY 20 VALIDATIONS
